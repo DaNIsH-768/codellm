@@ -8,8 +8,10 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_file_content import schema_get_file_content
 from functions.run_python_file import schema_run_python_file
 from functions.write_file import schema_write_file
+from functions.call_function import call_function
 
 def main():
+    res_list = []
     load_dotenv()
     api_key = os.environ.get('GEMINI_API_KEY')
 
@@ -37,7 +39,15 @@ def main():
         
         if response.function_calls:
             for function_call_part in response.function_calls:
-                print(f"Calling function: {function_call_part.name}({function_call_part.args})") 
+                res = call_function(function_call_part, verbose=args.verbose)
+
+                if not res.parts[0].function_response.response:
+                    raise Exception('fatal exception: no response from function call')
+                
+                res_list.append(res.parts[0])
+                if args.verbose:
+                    print(f"-> {res.parts[0].function_response.response}")
+
 
     else:
         raise RuntimeError('Request failed.')
