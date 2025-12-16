@@ -26,27 +26,56 @@ def main():
     )   
 
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-    model='gemini-2.5-flash', contents=messages,
-    config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
-    )
 
-    if response.usage_metadata:
-        if args.verbose:
-            print(f'User prompt: {args.user_prompt}')
-            print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
-            print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
+    for i in range(0, 20):
+        try:
+            response = client.models.generate_content(
+            model='gemini-2.5-flash', contents=messages,
+            config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
+            )
+        except:
+            raise Exception('Error sending the request to the LLM')
+
+        has_call = False
+        for candidate in response.candidates:
+            if candidate.content.parts[0].function_call:
+                has_call = True
         
-        if response.function_calls:
-            for function_call_part in response.function_calls:
-                res = call_function(function_call_part, verbose=args.verbose)
+        if not has_call and response.text:
+            print(f'Final response:\n{response.text}')
+            break
+            
 
-                if not res.parts[0].function_response.response:
-                    raise Exception('fatal exception: no response from function call')
+        if response.usage_metadata:
+            if args.verbose:
+                print(f'User prompt: {args.user_prompt}')
+                print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
+                print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
+
+            for candidate in response.candidates:
+                messages.append(candidate.content)
+            
+            if response.function_calls:
+                for function_call_part in response.function_calls:
+                    res = call_function(function_call_part, verbose=args.verbose)
+
+                    if not res.parts[0].function_response.response:
+                        raise Exception('fatal exception: no response from function call')
+                    
+                    res_list.append(res.parts[0])
+                    if args.verbose:
+                        print(f"-> {res.parts[0].function_response.response}")
                 
-                res_list.append(res.parts[0])
-                if args.verbose:
-                    print(f"-> {res.parts[0].function_response.response}")
+                res_content = types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                name=function_call_part.name,
+                response={"result": res_list},
+                )
+            ],
+        )
+                messages.append(res_content)
 
 
     else:
