@@ -1,7 +1,3 @@
-Based on the project files provided, here is a comprehensive `README.md` for the **codellm** project.
-
----
-
 #codellm**codellm** is an AI-powered coding agent built using the Google GenAI SDK. It leverages LLMs (specifically `gemini-2.5-flash`) to act as a thought partner and execution engine for coding tasks. The agent can explore a workspace, read file contents, write new code, and execute Python scripts to solve problems autonomously.
 
 ##Features* **Autonomous Coding Agent**: Acts as a helpful AI assistant that makes and executes plans to fix issues or fulfill user requests.
