@@ -52,8 +52,10 @@ Run the agent by providing a user prompt as a command-line argument:
 
 ```bash
 python main.py "your coding request here"
+```bash
 
-##options `--verbose`: Enable this flag to see detailed logs of token usage and function call execution.
+## options 
+`--verbose`: Enable this flag to see detailed logs of token usage and function call execution.
 
-##Security Note
+## Security Note
 The agent is constrained to a specific working directory (configured in `functions/call_function.py` as `./calculator`) to prevent unauthorized file access or execution outside the intended project scope.
